@@ -19,11 +19,20 @@ default = []
 broadcast = ["dep:claviron-broadcast"]
 django = ["broadcast", "dep:serde"]
 log = ["claviron/log-pipeline"]
+# A WebSocket answered by the application, on a connection this process holds.
+websocket = ["claviron/websocket", "dep:claviron-transport", "claviron-transport/websocket-session"]
+# `python:` on a site's routes and the one application `python.yaml` names, for
+# an Edge or any host that compiles a site. No runner comes with it.
+backend = ["websocket", "dep:async-trait", "dep:claviron-pipeline", "dep:serde", "dep:serde_yaml"]
 
 [dependencies]
 bytes = "1.11"
 claviron = { version = "0.2.0-alpha.26", path = "../../claviron", default-features = false, features = ["http", "application", "orbit"] }
 claviron-broadcast = { version = "0.2.0-alpha.25", optional = true }
+claviron-pipeline = { version = "0.2.0-alpha.26", path = "../../claviron/crates/pipeline", optional = true }
+claviron-transport = { version = "0.2.0-alpha.26", path = "../../claviron/crates/transport", optional = true }
+async-trait = { version = "0.1", optional = true }
+serde_yaml = { version = "0.9", optional = true }
 http = "1.4"
 http-body = "1.0"
 http-body-util = "0.1"

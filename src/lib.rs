@@ -7,9 +7,12 @@
 //!
 //! Python initialization is process-wide. Applications share that interpreter
 //! and its selected environment; this crate does not provide isolated venvs
-//! or subinterpreters in one process. The native Python module remains `gufi`.
+//! or subinterpreters in one process, so `python.yaml` names one application.
+//! The native Python module remains `gufi`.
 
 pub mod asgi;
+#[cfg(feature = "backend")]
+pub mod backend;
 #[cfg(feature = "broadcast")]
 mod broadcast;
 #[cfg(feature = "django")]
@@ -20,3 +23,10 @@ mod django;
 #[cfg(feature = "log")]
 mod log;
 pub mod routing;
+#[cfg(feature = "backend")]
+mod service;
+#[cfg(feature = "websocket")]
+pub mod websocket;
+
+#[cfg(feature = "backend")]
+pub use service::{CONFIG_FILE, register};

@@ -36,6 +36,45 @@ environment. This package provides no independent virtual-environment or
 subinterpreter isolation inside a process. Application stop/restart runs ASGI
 lifespan without finalizing CPython or evicting imported modules.
 
+## In a host
+
+With the `backend` feature, an Edge or any host that compiles a site serves the
+application from a route. No runner comes with it.
+
+```rust
+claviron_asgi::register(state)?;
+let hosts = state
+    .registry_ref()
+    .resolve::<claviron::edge::HostAppRegistry>()
+    .ok_or_else(|| registry::Error::msg("Python requires the Edge host registry"))?;
+claviron_asgi::backend::register(hosts.site())?;
+```
+
+```yaml
+# python.yaml
+target: app:app
+module_path: apps/python
+venv: .venv
+```
+
+```yaml
+# a host in vhost.yaml
+routes:
+  /api:
+    python: {}
+```
+
+`python.yaml` names one application, because a process has one interpreter and
+one environment. A second application runs in its own process and joins over
+Orbit, which is what the `gufi` runner does. An interpreter does not change its
+environment, so a changed `python.yaml` takes a restart. Each worker boots its
+own interpreter; a master boots none.
+
+The path reaches the application as the client sent it. An HTTP/1.1 WebSocket
+goes to the application when the host's transport allows `h1.upgrade`, and is
+refused with 403 otherwise. WebSocket over HTTP/2 or HTTP/3 and WebTransport are
+not served from a route yet.
+
 ## Native Python capabilities
 
 The native Python namespace remains `gufi`, including invocation and counters,

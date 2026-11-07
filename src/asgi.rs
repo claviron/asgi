@@ -1875,7 +1875,9 @@ fn configure_python(
         })
         .map_err(|error| python_error(py, error))?;
     if version != (3, 15) {
-        return Err(Error::Python("claviron-asgi requires CPython 3.15".to_owned()));
+        return Err(Error::Python(
+            "claviron-asgi requires CPython 3.15".to_owned(),
+        ));
     }
     if let Some(environment) = &definition.virtual_environment {
         let prefix: PathBuf = sys
