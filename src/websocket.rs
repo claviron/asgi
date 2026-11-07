@@ -1,10 +1,10 @@
-//! WebSocket on a connection this process holds.
+//! A message session, whichever door it came through.
 //!
-//! The protocol is the transport's (`claviron_transport::websocket`): it
-//! answers the handshake, joins fragments, answers pings and hands whole
-//! [`Message`]s over, the same ones a WebSocket over Orbit carries. What is
-//! Python's is the decision — the ASGI application accepts or refuses — and
-//! where the messages go.
+//! The protocol is the transport's (`claviron_transport::websocket`): on a
+//! connection this process holds it answers the handshake, joins fragments and
+//! answers pings; over Orbit the edge has done that already. Either way whole
+//! [`Message`]s come out. What is Python's is the decision — the ASGI application
+//! accepts or refuses — and where the messages go.
 
 use std::convert::Infallible;
 use std::future::Future;
@@ -14,13 +14,13 @@ use std::task::{Context, Poll};
 
 use bytes::Bytes;
 use claviron_transport::owner::AppRequest;
-pub use claviron_transport::websocket::Message;
-use claviron_transport::websocket::{Deliver, accept, is_websocket};
+pub use claviron_transport::websocket::{DEFAULT_MESSAGE_LIMIT, Message};
+use claviron_transport::websocket::{Deliver, SocketKind, accept, attempt};
 use http::{Request, StatusCode};
 
 use crate::asgi::{
-    PythonApplicationHandle, WebSocketDecision, WebSocketInbound,
-    WebSocketSession,
+    MessageTransport, PythonApplicationHandle, WebSocketDecision,
+    WebSocketInbound, WebSocketSession,
 };
 use crate::routing::{AppResponse, full_body};
 
@@ -39,16 +39,39 @@ impl Deliver for Inbound {
     }
 }
 
-/// The owner's answer to a request asking to take its connection over: a
-/// WebSocket goes to the application, anything else is not one this serves.
+/// Ends the application's `receive` if the attempt goes away before it decided,
+/// so a dropped request does not leave it waiting.
+struct Undecided(Option<WebSocketInbound>);
+
+impl Drop for Undecided {
+    fn drop(&mut self) {
+        if let Some(inbound) = self.0.take() {
+            inbound.end();
+        }
+    }
+}
+
+/// The owner's answer to a request attempting to open a session: a WebSocket, or
+/// the reliable stream of a WebTransport session an edge carries, goes to the
+/// application. Anything else is not one this serves.
 #[derive(Clone)]
 pub struct Upgrades {
     python: Arc<RwLock<Option<PythonApplicationHandle>>>,
+    message_limit: usize,
 }
 
 impl Upgrades {
     pub fn new(python: Arc<RwLock<Option<PythonApplicationHandle>>>) -> Self {
-        Self { python }
+        Self { python, message_limit: DEFAULT_MESSAGE_LIMIT }
+    }
+
+    /// Bound a text or binary message either way.
+    pub fn message_limit(
+        mut self,
+        limit: usize,
+    ) -> Self {
+        self.message_limit = limit;
+        self
     }
 }
 
@@ -70,32 +93,40 @@ impl tower_service::Service<AppRequest> for Upgrades {
         request: AppRequest,
     ) -> Self::Future {
         let python = self.python.read().expect("python handle lock").clone();
+        let limit = self.message_limit;
         Box::pin(async move {
-            if !is_websocket(&request) {
-                return Ok(status(StatusCode::NOT_IMPLEMENTED));
-            }
+            let transport = match attempt(&request).map(|offer| offer.kind) {
+                Some(SocketKind::WebSocket) => MessageTransport::WebSocket,
+                Some(SocketKind::WebTransport) => MessageTransport::WebTransport,
+                _ => return Ok(status(StatusCode::NOT_IMPLEMENTED)),
+            };
             let Some(python) = python else {
                 return Ok(status(StatusCode::SERVICE_UNAVAILABLE));
             };
             let (parts, body) = request.into_parts();
             let mut scope = crate::routing::request_scope(&parts);
-            // The handshake is HTTP/1.1 whatever the connection negotiated.
-            scope.http_version = "1.1".to_owned();
+            if transport == MessageTransport::WebSocket {
+                // The handshake is HTTP/1.1 whatever the connection negotiated.
+                scope.http_version = "1.1".to_owned();
+            }
             let Ok(WebSocketSession { decision, inbound, outbound }) =
-                python.handle_websocket(scope)
+                python.handle_message_session(scope, transport)
             else {
                 return Ok(status(StatusCode::SERVICE_UNAVAILABLE));
             };
+            let mut undecided = Undecided(Some(inbound));
             let headers = match decision.await {
                 Ok(WebSocketDecision::Accept { headers }) => headers,
                 // Refused, or the application ended first: ASGI's answer is 403.
                 _ => return Ok(status(StatusCode::FORBIDDEN)),
             };
+            let inbound = undecided.0.take().expect("taken once");
             Ok(accept(
                 Request::from_parts(parts, body),
                 headers,
                 Inbound(inbound),
                 outbound,
+                limit,
             ))
         })
     }

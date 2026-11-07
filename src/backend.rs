@@ -89,9 +89,12 @@ impl DispatchStep for PythonBackend {
         request: Request<RouteBody>,
         _: Option<HostContext<'_>>,
     ) -> DispatchCall {
-        if claviron::http::upgrade::is_h1_header_upgrade(&request, "websocket")
+        if let Some(offer) =
+            request.extensions().get::<claviron::http::socket::Offer>()
         {
-            if !self.h1_upgrade {
+            if offer.info().carrier == claviron::http::socket::Carrier::H1
+                && !self.h1_upgrade
+            {
                 tracing::debug!(
                     path = request.uri().path(),
                     "a WebSocket upgrade was refused: this transport has no h1.upgrade"
