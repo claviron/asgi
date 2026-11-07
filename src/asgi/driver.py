@@ -128,7 +128,7 @@ async def drive_websocket(application, socket, state, waiters):
         "subprotocols": subprotocols,
         "state": state.copy(),
         "extensions": {
-            "gufi.transport": {
+            "claviron.transport": {
                 "name": socket.transport,
                 "method": socket.method,
                 "scheme": socket.scheme,
@@ -298,8 +298,8 @@ async def _drive(application, control, lifecycle):
     # of their body, by id: the doorbell names them and the loop resolves
     # their waits here, on its own thread.
     waiters = {}
-    # Django Channels' layer, when gufi installed it, waits in the same table.
-    channel_layer = sys.modules.get("gufi.channels")
+    # Django Channels' layer, when it was installed, waits in the same table.
+    channel_layer = sys.modules.get("claviron.channels")
     if channel_layer is not None:
         channel_layer._waiters = waiters
 

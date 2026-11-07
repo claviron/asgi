@@ -1,6 +1,6 @@
 //! Django Channels' channel layer over Claviron's broadcast groups.
 //!
-//! `gufi.channels.OrbitChannelLayer` is the layer a Django project names
+//! `claviron.channels.OrbitChannelLayer` is the layer a Django project names
 //! in `CHANNEL_LAYERS`, in place of `channels_redis`. Boxes, groups and their
 //! fan-out across the fleet are the broadcast service's
 //! ([`GroupLayer`]); this module hands them to Python and resolves a
@@ -47,8 +47,8 @@ impl ChannelLayer {
     }
 }
 
-/// `gufi._channels`: what `channels.py` calls.
-#[pyclass(name = "ChannelCore", module = "gufi", frozen)]
+/// `claviron._channels`: what `channels.py` calls.
+#[pyclass(name = "ChannelCore", module = "claviron", frozen)]
 pub(crate) struct ChannelCore {
     layer: ChannelLayer,
     ring: Ring,
@@ -155,7 +155,7 @@ impl ChannelCore {
 }
 
 /// A receive waiting for its box, in the loop's table of waits by `id`.
-#[pyclass(name = "ChannelWait", module = "gufi", frozen)]
+#[pyclass(name = "ChannelWait", module = "claviron", frozen)]
 pub(crate) struct ChannelWait {
     #[pyo3(get)]
     id: u64,

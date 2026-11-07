@@ -77,11 +77,14 @@ not served from a route yet.
 
 ## Native Python capabilities
 
-The native Python namespace remains `gufi`, including invocation and counters,
+The native Python namespace is `claviron`, including invocation and counters,
 plus optional broadcast, logging and Django Channels capabilities. The
 `broadcast`, `log` and `django` features select their native adapters; the host
 supplies the matching services. They do not install a Python compatibility
 package or change the ASGI protocol.
+
+The module exists only inside the host process. Add this repository's `stubs/`
+directory to your editor's stub search path; it holds type declarations only.
 
 ## Building
 

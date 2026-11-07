@@ -188,7 +188,7 @@ class DriverTests(unittest.IsolatedAsyncioTestCase):
             async def app(scope, receive, send):
                 self.assertEqual(scope["type"], "websocket")
                 self.assertEqual(scope["http_version"], version)
-                self.assertEqual(scope["extensions"]["gufi.transport"], {
+                self.assertEqual(scope["extensions"]["claviron.transport"], {
                     "name": transport, "http_version": version, "method": method, "scheme": "https",
                 })
                 self.assertEqual((await receive())["type"], "websocket.connect")
@@ -248,11 +248,11 @@ class DriverTests(unittest.IsolatedAsyncioTestCase):
         control = self.control()
         failed, pending = PendingExchange(1), PendingExchange(2)
         layer = SimpleNamespace(_waiters=None)
-        previous = sys.modules.get("gufi.channels")
-        sys.modules["gufi.channels"] = layer
+        previous = sys.modules.get("claviron.channels")
+        sys.modules["claviron.channels"] = layer
         self.addCleanup(
-            lambda: sys.modules.pop("gufi.channels", None)
-            if previous is None else sys.modules.__setitem__("gufi.channels", previous)
+            lambda: sys.modules.pop("claviron.channels", None)
+            if previous is None else sys.modules.__setitem__("claviron.channels", previous)
         )
 
         async def app(scope, receive, send):

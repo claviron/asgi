@@ -9,7 +9,7 @@ keywords = ["python", "asgi", "claviron", "embedding", "websocket"]
 categories = ["web-programming::http-server", "api-bindings", "asynchronous"]
 autotests = false
 links = "claviron_asgi"
-include = ["/src/**", "/build.rs", "/Cargo.toml", "/README.md", "/LICENSE"]
+include = ["/src/**", "/stubs/**", "/build.rs", "/Cargo.toml", "/README.md", "/LICENSE"]
 
 [workspace]
 resolver = "3"

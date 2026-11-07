@@ -8,7 +8,7 @@
 //! Python initialization is process-wide. Applications share that interpreter
 //! and its selected environment; this crate does not provide isolated venvs
 //! or subinterpreters in one process, so `python.yaml` names one application.
-//! The native Python module remains `gufi`.
+//! The native Python module is `claviron`.
 
 pub mod asgi;
 #[cfg(feature = "backend")]

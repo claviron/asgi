@@ -22,27 +22,27 @@ def load_module(name, source):
 
 class NativeModuleTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.gufi = ModuleType("gufi")
-        self.enterContext(patch.dict(sys.modules, {"gufi": self.gufi}))
+        self.claviron = ModuleType("claviron")
+        self.enterContext(patch.dict(sys.modules, {"claviron": self.claviron}))
 
-    def test_log_handler_uses_gufi_native_channel(self):
+    def test_log_handler_uses_claviron_native_channel(self):
         records = []
-        self.gufi._log_channel = lambda name: 7 if name == "example" else None
-        self.gufi._log = lambda *args, **kwargs: records.append((args, kwargs))
-        module = load_module("gufi._log", "src/log.py")
-        self.gufi.LogHandler = module.LogHandler
-        handler = self.gufi.LogHandler("example")
+        self.claviron._log_channel = lambda name: 7 if name == "example" else None
+        self.claviron._log = lambda *args, **kwargs: records.append((args, kwargs))
+        module = load_module("claviron._log", "src/log.py")
+        self.claviron.LogHandler = module.LogHandler
+        handler = self.claviron.LogHandler("example")
         self.addCleanup(handler.close)
         record = logging.LogRecord("example.logger", logging.INFO, __file__, 1,
                                    "message %s", ("sent",), None)
         handler.emit(record)
         self.assertEqual(records[0][0], (7, "INFO", "message sent"))
         self.assertEqual(records[0][1]["target"], "example.logger")
-        self.assertEqual(type(handler).__module__, "gufi._log")
+        self.assertEqual(type(handler).__module__, "claviron._log")
 
-    async def test_channels_backend_import_uses_gufi_native_core(self):
+    async def test_channels_backend_import_uses_claviron_native_core(self):
         calls = []
-        self.gufi._channels = SimpleNamespace(
+        self.claviron._channels = SimpleNamespace(
             group_add=lambda *args: calls.append(args),
         )
         exceptions = ModuleType("channels.exceptions")
@@ -58,11 +58,11 @@ class NativeModuleTests(unittest.IsolatedAsyncioTestCase):
             "channels.exceptions": exceptions,
             "channels.layers": layers,
         }))
-        self.gufi.channels = load_module("gufi.channels", "src/django/channels.py")
-        backend = importlib.import_module("gufi.channels").OrbitChannelLayer()
+        self.claviron.channels = load_module("claviron.channels", "src/django/channels.py")
+        backend = importlib.import_module("claviron.channels").OrbitChannelLayer()
         await backend.group_add("example", "specific.example")
         self.assertEqual(calls, [("example", "specific.example")])
-        self.assertEqual(type(backend).__module__, "gufi.channels")
+        self.assertEqual(type(backend).__module__, "claviron.channels")
 
 
 if __name__ == "__main__":

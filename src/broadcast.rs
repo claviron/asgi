@@ -1,6 +1,6 @@
 //! Python publishing to a host-supplied Claviron broadcast service.
 //!
-//! `gufi.broadcast(...)` publishes directly into the service in this process.
+//! `claviron.broadcast(...)` publishes directly into the service in this process.
 //! The host owns subscriber sessions and transport; Claviron owns the protocol
 //! and channel delivery.
 
@@ -27,8 +27,8 @@ impl Publisher {
     }
 }
 
-/// `gufi.broadcast`, as Python sees it.
-#[pyclass(name = "Broadcast", module = "gufi", frozen)]
+/// `claviron.broadcast`, as Python sees it.
+#[pyclass(name = "Broadcast", module = "claviron", frozen)]
 pub(crate) struct PythonBroadcast {
     publisher: Publisher,
 }

@@ -1,4 +1,4 @@
-//! What Django gets from gufi beyond ASGI, which Django already speaks.
+//! What Django gets from this crate beyond ASGI, which Django already speaks.
 //!
 //! Django's own capabilities stay Django's; what is added here is where a
 //! Django deployment would otherwise reach for another server — Channels'
