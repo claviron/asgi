@@ -283,7 +283,7 @@ impl PythonApplication {
         let (commands, doorbell) = commands()?;
         let (startup_tx, startup_rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
-            .name("gufi-asgi".to_owned())
+            .name("claviron-asgi".to_owned())
             .spawn({
                 let commands = commands.clone();
                 move || {
@@ -1564,8 +1564,8 @@ fn run_application(
         .map_err(|error| python_error(py, error))?;
         let code = CString::new(APPLICATION_DRIVER)
             .expect("application driver has no NUL bytes");
-        let filename = CString::new("<gufi-asgi>").unwrap();
-        let name = CString::new("_gufi_asgi_lifespan").unwrap();
+        let filename = CString::new("<claviron-asgi>").unwrap();
+        let name = CString::new("_claviron_asgi_lifespan").unwrap();
         let driver = PyModule::from_code(py, &code, &filename, &name)
             .map_err(|error| python_error(py, error))?;
         let coroutine = driver
@@ -1621,7 +1621,7 @@ impl PythonInvocationBridge {
 
 /// Installs the module the application imports to reach this process.
 ///
-/// Gufi owns this Python API, including its native types and optional adapters.
+/// This crate owns this Python API, including its native types and optional adapters.
 /// An application booting [`PythonApplication`] directly gets the same module.
 /// Claviron operation identifiers and Rust service names remain unchanged;
 /// no legacy Python module alias is installed.
@@ -1793,7 +1793,7 @@ fn initialize_interpreter(virtual_environment: Option<&Path>) -> Result<()> {
                 venv.join("bin").join("python")
             }
         }
-        None => PathBuf::from(env!("GUFI_PYTHON_EXECUTABLE")),
+        None => PathBuf::from(env!("CLAVIRON_ASGI_PYTHON_EXECUTABLE")),
     };
     if !executable.is_file() {
         return Err(Error::Python(format!(
@@ -1875,7 +1875,7 @@ fn configure_python(
         })
         .map_err(|error| python_error(py, error))?;
     if version != (3, 15) {
-        return Err(Error::Python("Gufi requires CPython 3.15".to_owned()));
+        return Err(Error::Python("claviron-asgi requires CPython 3.15".to_owned()));
     }
     if let Some(environment) = &definition.virtual_environment {
         let prefix: PathBuf = sys

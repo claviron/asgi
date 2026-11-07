@@ -1,15 +1,18 @@
 [package]
-name = "gufi-asgi"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
-description = "Embeddable Python ASGI engine with lifespan, streaming HTTP and message sessions"
+name = "claviron-asgi"
+version = "0.2.0-alpha.26"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/claviron/asgi"
+description = "Python and ASGI embedded in Claviron: lifespan, streaming HTTP and message sessions"
 keywords = ["python", "asgi", "claviron", "embedding", "websocket"]
 categories = ["web-programming::http-server", "api-bindings", "asynchronous"]
 autotests = false
-links = "gufi_asgi"
+links = "claviron_asgi"
 include = ["/src/**", "/build.rs", "/Cargo.toml", "/README.md", "/LICENSE"]
+
+[workspace]
+resolver = "3"
 
 [features]
 default = []
@@ -19,8 +22,8 @@ log = ["claviron/log-pipeline"]
 
 [dependencies]
 bytes = "1.11"
-claviron = { workspace = true, features = ["http", "application", "orbit"] }
-claviron-broadcast = { workspace = true, optional = true }
+claviron = { version = "0.2.0-alpha.26", path = "../../claviron", default-features = false, features = ["http", "application", "orbit"] }
+claviron-broadcast = { version = "0.2.0-alpha.25", optional = true }
 http = "1.4"
 http-body = "1.0"
 http-body-util = "0.1"

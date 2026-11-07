@@ -1,15 +1,15 @@
-# gufi-asgi
+# claviron-asgi
 
 Embeddable CPython and ASGI execution for Rust hosts. This package owns PyO3,
 the interpreter boundary, ASGI lifespan and streaming HTTP/message execution.
-It does not start a Gufi runner, HTTP listener or process supervisor.
+It does not start a runner, HTTP listener or process supervisor.
 
-The `gufi` runner uses this engine and preserves its existing public API.
-Hosts that own routing and lifecycle can depend on the engine directly:
+The `gufi` runner uses this engine over Orbit. Hosts that own routing and
+lifecycle can depend on the engine directly:
 
 ```toml
 [dependencies]
-gufi-asgi = "0.2.0-alpha.26"
+claviron-asgi = "0.2.0-alpha.26"
 ```
 
 ## Ownership
@@ -48,7 +48,7 @@ package or change the ASGI protocol.
 
 Select CPython 3.15 with `PYO3_PYTHON` or PyO3 configuration. This package owns
 ABI validation and publishes the shared-library directory to a direct host's
-build script as `DEP_GUFI_ASGI_PYTHON_LIB_DIR`. The `gufi` runner forwards the
+build script as `DEP_CLAVIRON_ASGI_PYTHON_LIB_DIR`. The `gufi` runner forwards the
 same directory under its existing `DEP_GUFI_PYTHON_LIB_DIR` key.
 
 Existing engine tests live under `tests/`. The Python driver checks can also

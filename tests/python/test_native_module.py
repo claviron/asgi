@@ -1,4 +1,4 @@
-"""Load shipped adapters against Gufi's native boundary without booting Rust."""
+"""Load shipped adapters against the native boundary without booting Rust."""
 
 import importlib
 import importlib.util
