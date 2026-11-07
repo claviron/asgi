@@ -32,7 +32,7 @@ use crate::websocket::Upgrades;
 pub fn register(
     registry: &SiteRegistry
 ) -> claviron::runtime::registry::Result<()> {
-    registry.register_backend_factory(factory(
+    registry.register_backend(factory(
         "python",
         BackendPlacement::AfterFiles,
         prepare,
