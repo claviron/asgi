@@ -76,6 +76,9 @@ struct PythonBackend {
 impl BackendHandler for PythonBackend {
     fn contract(&self) -> BackendContract {
         BackendContract {
+            execution: claviron::ExecutorSpec::Dedicated(
+                claviron::ExecutorKind::CurrentThread,
+            ),
             // The ASGI scope reports the accepted connection.
             identity: BackendIdentity::Request,
             reply: BackendReply::Owner,
