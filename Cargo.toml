@@ -9,7 +9,7 @@ keywords = ["python", "asgi", "claviron", "embedding", "websocket"]
 categories = ["web-programming::http-server", "api-bindings", "asynchronous"]
 autotests = false
 links = "claviron_asgi"
-include = ["/src/**", "/stubs/**", "/build.rs", "/Cargo.toml", "/README.md", "/LICENSE"]
+include = ["/src/**/*.rs", "/src/**/*.py", "/stubs/**/*.pyi", "/build.rs", "/Cargo.toml", "/README.md", "/LICENSE"]
 
 [workspace]
 resolver = "3"
@@ -27,10 +27,10 @@ backend = ["websocket", "dep:async-trait", "dep:claviron-pipeline", "dep:serde",
 
 [dependencies]
 bytes = "1.11"
-claviron = { version = "0.2.0-alpha.26", path = "../../claviron", default-features = false, features = ["http", "application", "orbit"] }
-claviron-broadcast = { version = "0.2.0-alpha.26", path = "../../backends/broadcast", optional = true }
-claviron-pipeline = { version = "0.2.0-alpha.26", path = "../../claviron/crates/pipeline", optional = true }
-claviron-transport = { version = "0.2.0-alpha.26", path = "../../claviron/crates/transport", optional = true }
+claviron = { version = "0.2.0-alpha.26", default-features = false, features = ["http", "application", "orbit"] }
+claviron-broadcast = { version = "0.2.0-alpha.26", optional = true }
+claviron-pipeline = { version = "0.2.0-alpha.26", optional = true }
+claviron-transport = { version = "0.2.0-alpha.26", optional = true }
 async-trait = { version = "0.1", optional = true }
 serde_yaml = { version = "0.9", optional = true }
 http = "1.4"
