@@ -38,17 +38,16 @@ lifespan without finalizing CPython or evicting imported modules.
 
 ## In a host
 
-With the `backend` feature, an Edge or any host that compiles a site serves the
-application from a route. No runner comes with it.
+With `edge` enabled, the registration call installs the Python application
+and the `python:` route factory on Edge. This API is available in the
+`0.2.2-1` prerelease.
 
 ```rust
 claviron_asgi::register(state)?;
-let hosts = state
-    .registry_ref()
-    .resolve::<claviron::edge::HostAppRegistry>()
-    .ok_or_else(|| registry::Error::msg("Python requires the Edge host registry"))?;
-claviron_asgi::backend::register(hosts.site())?;
 ```
+
+Hosts that supply their own site registry can select `backend` and call
+`claviron_asgi::backend::register(site)` alongside runtime registration.
 
 ```yaml
 # python.yaml

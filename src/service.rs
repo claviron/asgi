@@ -49,13 +49,17 @@ impl PythonService {
 }
 
 /// Bring up the application `python.yaml` names, in every process that serves.
-/// A site reaches it by [`backend::register`](crate::backend::register).
+/// With `edge`, also install the `python:` route factory on Edge.
 pub fn register(state: &AppState) -> registry::Result<()> {
     state.registry_ref().register(Arc::new(PythonService {
         source: state.config_dir().join(CONFIG_FILE),
         handle: Arc::new(RwLock::new(None)),
         running: Mutex::new(None),
     }))?;
+    #[cfg(feature = "edge")]
+    if let Some(hosts) = state.registry_ref().resolve::<claviron::edge::HostAppRegistry>() {
+        crate::backend::register(hosts.site())?;
+    }
     Ok(())
 }
 

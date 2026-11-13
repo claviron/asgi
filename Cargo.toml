@@ -1,6 +1,6 @@
 [package]
 name = "claviron-asgi"
-version = "0.2.2"
+version = "0.2.2-1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/claviron/asgi"
@@ -24,6 +24,7 @@ websocket = ["claviron/websocket", "dep:claviron-transport", "claviron-transport
 # `python:` on a site's routes and the one application `python.yaml` names, for
 # an Edge or any host that compiles a site. No runner comes with it.
 backend = ["websocket", "dep:async-trait", "dep:claviron-pipeline", "dep:serde", "dep:serde_yaml"]
+edge = ["backend", "claviron/edge"]
 
 [dependencies]
 bytes = "1.11"
