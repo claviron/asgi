@@ -9,7 +9,7 @@ lifecycle can depend on the engine directly:
 
 ```toml
 [dependencies]
-claviron-asgi = "0.2.2"
+claviron-asgi = "0.2.3"
 ```
 
 ## Ownership
@@ -39,8 +39,7 @@ lifespan without finalizing CPython or evicting imported modules.
 ## In a host
 
 With `edge` enabled, the registration call installs the Python application
-and the `python:` route factory on Edge. This API is available in the
-`0.2.2-1` prerelease.
+and the `python:` route factory on Edge.
 
 ```rust
 claviron_asgi::register(state)?;
