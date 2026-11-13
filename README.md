@@ -9,7 +9,7 @@ lifecycle can depend on the engine directly:
 
 ```toml
 [dependencies]
-claviron-asgi = "0.2.1"
+claviron-asgi = "0.2.2"
 ```
 
 ## Ownership
