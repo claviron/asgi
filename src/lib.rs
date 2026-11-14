@@ -27,6 +27,8 @@ pub mod routing;
 mod service;
 #[cfg(feature = "websocket")]
 pub mod websocket;
+#[cfg(feature = "webtransport")]
+mod webtransport;
 
 #[cfg(feature = "backend")]
 pub use service::{CONFIG_FILE, register};

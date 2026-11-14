@@ -6,8 +6,16 @@
 //!     python: {}
 //! ```
 //!
-//! The application is the one `python.yaml` names, so a route selects it and
-//! says nothing else. The path reaches it as the client sent it.
+//! The application is the one `python.yaml` names, so a route selects it. The
+//! path reaches it as the client sent it. With `webtransport`, a route also
+//! names the paths a native WebTransport session may open on, under its mount:
+//!
+//! ```yaml
+//! routes:
+//!   /:
+//!     python:
+//!       webtransport: [/ws/echo]
+//! ```
 
 use std::sync::Arc;
 
@@ -39,15 +47,39 @@ pub fn register(
     ))
 }
 
-/// Nothing to say yet: a process has one application.
-#[derive(Deserialize)]
+/// A process has one application, so a route names no application.
+#[derive(Default, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Route {}
+pub(crate) struct Route {
+    /// Paths a native WebTransport session may open on, under the scope's
+    /// mount. Each needs the `webtransport` feature to be bound.
+    #[serde(default)]
+    pub(crate) webtransport: Vec<claviron::http::ext::PathPrefix>,
+}
+
+/// A scope's `python:` declaration, decoded. `None` when it declares none.
+#[cfg(feature = "webtransport")]
+pub(crate) fn declared(
+    scope: &claviron_pipeline::Site
+) -> Result<Option<Route>, serde_yaml::Error> {
+    match scope.directive("python") {
+        None => Ok(None),
+        Some(serde_yaml::Value::Null) => Ok(Some(Route::default())),
+        Some(value) => serde_yaml::from_value(value.clone()).map(Some),
+    }
+}
 
 fn prepare(
     context: &BackendContext<'_>,
-    _: Route,
+    route: Route,
 ) -> claviron::runtime::registry::Result<Vec<Arc<dyn BackendHandler>>> {
+    // Declared paths without the sessions that serve them would be ignored.
+    if !cfg!(feature = "webtransport") && !route.webtransport.is_empty() {
+        return Err(claviron::runtime::registry::Error::msg(format!(
+            "backend 'python' at '{}': webtransport requires the webtransport feature",
+            context.prefix
+        )));
+    }
     let application = context
         .state
         .registry_ref()
@@ -95,6 +127,20 @@ impl DispatchStep for PythonBackend {
         if let Some(offer) =
             request.extensions().get::<claviron::http::socket::Offer>()
         {
+            // A native WebTransport session asks the plan only whether it may
+            // reach this scope; the session handler bound to its path answers
+            // its streams, so the application is not asked here.
+            if offer.info().kind
+                == claviron::http::socket::SocketKind::WebTransport
+                && offer.info().carrier == claviron::http::socket::Carrier::H3
+            {
+                return DispatchCall::ready(ServiceResult::Handled(
+                    match offer.claim() {
+                        Some(claim) => claim.reach(),
+                        None => err_status(StatusCode::FORBIDDEN),
+                    },
+                ));
+            }
             if offer.info().carrier == claviron::http::socket::Carrier::H1
                 && !self.h1_upgrade
             {

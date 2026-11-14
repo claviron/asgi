@@ -51,14 +51,22 @@ impl PythonService {
 /// Bring up the application `python.yaml` names, in every process that serves.
 /// With `edge`, also install the `python:` route factory on Edge.
 pub fn register(state: &AppState) -> registry::Result<()> {
-    state.registry_ref().register(Arc::new(PythonService {
+    let service = Arc::new(PythonService {
         source: state.config_dir().join(CONFIG_FILE),
         handle: Arc::new(RwLock::new(None)),
         running: Mutex::new(None),
-    }))?;
+    });
+    #[cfg(feature = "webtransport")]
+    let handle = service.handle();
+    state.registry_ref().register(service)?;
     #[cfg(feature = "edge")]
-    if let Some(hosts) = state.registry_ref().resolve::<claviron::edge::HostAppRegistry>() {
+    if let Some(hosts) =
+        state.registry_ref().resolve::<claviron::edge::HostAppRegistry>()
+    {
         crate::backend::register(hosts.site())?;
+        // The paths `python:` routes declare for native WebTransport sessions.
+        #[cfg(feature = "webtransport")]
+        crate::webtransport::register(state, handle)?;
     }
     Ok(())
 }

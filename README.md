@@ -70,8 +70,30 @@ own interpreter; a master boots none.
 
 The path reaches the application as the client sent it. An HTTP/1.1 WebSocket
 goes to the application when the host's transport allows `h1.upgrade`, and is
-refused with 403 otherwise. WebSocket over HTTP/2 or HTTP/3 and WebTransport are
-not served from a route yet.
+refused with 403 otherwise. WebSocket over HTTP/2 or HTTP/3 is not served from
+a route yet.
+
+With the `webtransport` feature, a route names the paths a WebTransport session
+may open on, under its mount, and the host's transport allows `h3.webtransport`:
+
+```yaml
+routes:
+  /:
+    python:
+      webtransport: [/ws/echo]
+```
+
+Each reliable bidirectional stream of a session is one ASGI WebSocket
+connection, with `scope["transport"]` set to `"webtransport"`. The stream
+carries one record per message, as a stream relayed over Orbit does:
+
+```text
+u8 kind (1 text, 2 binary, 8 close) | u32 length (little endian) | payload
+```
+
+The application decides the first stream before the session is answered, so a
+refusal stays an HTTP status; a later stream it refuses is reset. Without the
+feature, a route that names paths is refused when it is prepared.
 
 ## Native Python capabilities
 
